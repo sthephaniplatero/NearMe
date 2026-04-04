@@ -1,4 +1,5 @@
 import { searchNearbyPlaces } from "./js/services/searchService";
+import { loadHome } from "./js/pages/Home";
  
 document.addEventListener("DOMContentLoaded", async () => {
   const app = document.getElementById("app");
@@ -19,3 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 }); 
+
+document.addEventListener("DOMContentLoaded",() => {
+    loadHome();
+});

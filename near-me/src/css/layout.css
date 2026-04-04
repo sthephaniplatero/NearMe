@@ -1,0 +1,13 @@
+body {
+    background: linear-gradient(
+        135deg,
+        var(--primary),
+        var(--secondary)
+
+        
+    );
+
+    font-family: var(--font-body);
+
+    
+}

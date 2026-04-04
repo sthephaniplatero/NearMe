@@ -1,0 +1,28 @@
+.card{
+    background-color: var(--white);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.0.8);
+    transition: all 0.25s ease;
+    border-left: 5px solid var(--primary)
+}
+
+.card:hover{
+    transform: translateY(-6px);
+    border-left: 5px solid var(--highlight);
+}
+
+.card h3{
+    font-family: var(--font-title);
+    margin:0;
+    font-size: 1.2rem;
+    color: var(--secondary);
+}
+
+.card p{
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    margin-top: 8px;
+    color:var(--text-light);
+}
+
