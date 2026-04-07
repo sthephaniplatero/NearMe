@@ -25,38 +25,19 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return (R * c).toFixed(2);
 }
 
-export function createPlaceCard(place, userLat, userLon) {
-  const name =
-    place.properties.name ||
-    place.properties.kinds?.split(",")[0] ||
-    "Lugar sin nombre";
+export function createPlaceCard(place, image) {
+  const name = place.properties.name || "place";
 
-  const category = translateCategory(place.properties.kinds);
-
-  // 🔥 OPCIÓN 1: usar distancia de API (más simple)
-  const distance = place.properties.dist
-    ? (place.properties.dist / 1000).toFixed(1) + " km"
-    : "N/A";
-
-  // 🔥 OPCIÓN 2 (mejor): calcularla tú
-  /*
-  const distance = place.geometry
-    ? calculateDistance(
-        userLat,
-        userLon,
-        place.geometry.coordinates[1],
-        place.geometry.coordinates[0]
-      ) + " km"
-    : "N/A";
-  */
+  const fallback = `https://picsum.photos/seed/${encodeURIComponent(name)}/300/200`;
 
   return `
     <div class="card">
-      <div class="card-content">
-        <h3>${name}</h3>
-        <p>${category}</p>
-        <p>📍 ${distance}</p>
-      </div>
+      <img 
+        src="${image || fallback}" 
+        alt="${name}"
+        onerror="this.src='${fallback}'"
+      />
+      <h3>${name}</h3>
     </div>
   `;
 }

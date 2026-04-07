@@ -4,12 +4,26 @@
     padding: 16px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.0.8);
     transition: all 0.25s ease;
-    border-left: 5px solid var(--primary)
+    border-left: 5px solid var(--primary);
+    overflow: hidden;
+    margin: 14px 0;
+
 }
 
 .card:hover{
     transform: translateY(-6px);
     border-left: 5px solid var(--highlight);
+}
+
+.card-img{
+    width: 100%;
+    height: 160px;
+    object-fit:cover;
+    border-radius: 12px;
+}
+
+.card-content{
+    padding: 12px;
 }
 
 .card h3{
@@ -24,5 +38,23 @@
     font-size: 0.9rem;
     margin-top: 8px;
     color:var(--text-light);
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.filters button {
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  background: #eee;
+}
+
+.filters button:hover {
+  background: #ccc;
 }
 
