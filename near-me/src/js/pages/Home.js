@@ -1,13 +1,12 @@
 import { formatDistance } from "../utils/formatDistance.js";
 import { createPlaceCard } from "../components/Card.js";
-
+import { calculateTravelTime } from "../utils/calculateTravelTime.js";
 
 import {
   getNearByPlaces,
   getPlaceDetails,
   filterPlaces
 } from "../api/places.js";
-
 
 // 📍 Ubicación usuario
 function getUserLocation() {
@@ -63,95 +62,6 @@ export async function loadHome() {
   const userLocation = await getUserLocation();
 
   // ===============================
-  // 🎯 RENDER
-  // ===============================
-  async function renderPlaces(kinds = "", radius = 3000, reset = true) {
-    const results = document.getElementById("results");
-
-    if (reset) {
-      results.innerHTML = `<p>Loading...</p>`;
-      currentPage = 1;
-    }
-
-    const places = await getNearByPlaces(
-      userLocation.lat,
-      userLocation.lon,
-      kinds,
-      radius
-    );
-
-    // 🧹 limpiar data basura
-    allPlaces = filterPlaces(places);
-
-    renderPage();
-  }
-
-
-
-  // ===============================
-  // 📄 RENDER PAGINADO
-  // ===============================
-  async function renderPage() {
-    const results = document.getElementById("results");
-
-    const start = 0;
-    const end = currentPage * ITEMS_PER_PAGE;
-
-    const pageData = allPlaces.slice(start, end);
-
-    let cardsHTML = "";
-
-    for (const place of pageData) {
-      const xid = place.properties.xid;
-
-      const details = await getPlaceDetails(xid);
-
-      let image = details?.preview?.source;
-
-      if (!image || !image.startsWith("http")) {
-        image = `https://picsum.photos/seed/${xid}/300/200`;
-      }
-
-      const placeLat = place.geometry.coordinates[1];
-      const placeLon = place.geometry.coordinates[0];
-
-      const distance = calculateDistance(
-        userLocation.lat,
-        userLocation.lon,
-        placeLat,
-        placeLon
-      );
-
-      const formattedDistance = formatDistance(distance);
-
-      cardsHTML += createPlaceCard(place, image, formattedDistance);
-    }
-
-    // botón ver más
-    const hasMore = end < allPlaces.length;
-
-    results.innerHTML = `
-      ${cardsHTML}
-
-      ${
-        hasMore
-          ? `<button id="loadMore" class="load-more">Ver más</button>`
-          : `<p>No hay más lugares</p>`
-      }
-    `;
-
-    // evento botón
-    const loadMoreBtn = document.getElementById("loadMore");
-
-    if (loadMoreBtn) {
-      loadMoreBtn.addEventListener("click", () => {
-        currentPage++;
-        renderPage();
-      });
-    }
-  }
-
-  // ===============================
   // 🎯 UI
   // ===============================
   app.innerHTML = `
@@ -178,14 +88,128 @@ export async function loadHome() {
       <input type="text" id="searchInput" placeholder="Search...">
       <button id="searchBtn">Search</button>
 
+      <div id="map" style="height: 300px; margin-bottom: 20px;"></div>
       <div id="results"></div>
     </section>
   `;
 
+  // ===============================
+  // 🗺️ MAPA (después del HTML)
+  // ===============================
+  let map = L.map("map").setView(
+    [userLocation.lat, userLocation.lon],
+    13
+  );
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
+
+  // 📍 usuario
+  L.marker([userLocation.lat, userLocation.lon])
+    .addTo(map)
+    .bindPopup("You are here 📍")
+    .openPopup();
+
+  // ===============================
+  // 🎯 RENDER
+  // ===============================
+  async function renderPlaces(kinds = "", radius = 3000, reset = true) {
+    const results = document.getElementById("results");
+
+    if (reset) {
+      results.innerHTML = `<p>Loading...</p>`;
+      currentPage = 1;
+    }
+
+    const places = await getNearByPlaces(
+      userLocation.lat,
+      userLocation.lon,
+      kinds,
+      radius
+    );
+
+    allPlaces = filterPlaces(places);
+
+    renderPage();
+  }
+
+  // ===============================
+  // 📄 RENDER PAGINADO
+  // ===============================
+  async function renderPage() {
+    const results = document.getElementById("results");
+
+    const end = currentPage * ITEMS_PER_PAGE;
+    const pageData = allPlaces.slice(0, end);
+
+    let cardsHTML = "";
+
+    // limpiar markers
+    if (window.markersLayer) {
+      window.markersLayer.clearLayers();
+    }
+
+    window.markersLayer = L.layerGroup().addTo(map);
+
+    for (const place of pageData) {
+      const xid = place.properties.xid;
+
+      const details = await getPlaceDetails(xid);
+
+      let image = details?.preview?.source;
+
+      if (!image || !image.startsWith("http")) {
+        image = `https://picsum.photos/seed/${xid}/300/200`;
+      }
+
+      const placeLat = place.geometry.coordinates[1];
+      const placeLon = place.geometry.coordinates[0];
+
+      const distance = calculateDistance(
+        userLocation.lat,
+        userLocation.lon,
+        placeLat,
+        placeLon
+      );
+
+      const formattedDistance = formatDistance(distance);
+
+      const times = calculateTravelTime(distance);
+
+      // 📍 marker
+      L.marker([placeLat, placeLon])
+        .addTo(window.markersLayer)
+        .bindPopup(`<b>${place.properties.name}</b><br>${formattedDistance}<br>Estimated travel time: ${times.walk} walking, ${times.car} by car.`);
+
+      cardsHTML += createPlaceCard(place, image, formattedDistance, times);
+    }
+
+    const hasMore = end < allPlaces.length;
+
+    results.innerHTML = `
+      ${cardsHTML}
+      ${
+        hasMore
+          ? `<button id="loadMore" class="load-more">Ver más</button>`
+          : `<p>No hay más lugares</p>`
+      }
+    `;
+
+    const loadMoreBtn = document.getElementById("loadMore");
+
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener("click", () => {
+        currentPage++;
+        renderPage();
+      });
+    }
+  }
+
   // 🚀 carga inicial
   await renderPlaces();
 
-  // 🔍 buscador (sobre data real)
+  // 🔍 buscador
   const searchInput = document.getElementById("searchInput");
   const searchBtn = document.getElementById("searchBtn");
 
