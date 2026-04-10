@@ -25,7 +25,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return (R * c).toFixed(2);
 }
 
-export function createPlaceCard(place, image) {
+export function createPlaceCard(place, image, distance) {
   const name = place.properties.name || "place";
 
   const fallback = `https://picsum.photos/seed/${encodeURIComponent(name)}/300/200`;
@@ -38,6 +38,9 @@ export function createPlaceCard(place, image) {
         onerror="this.src='${fallback}'"
       />
       <h3>${name}</h3>
+       <p class="distance">📍 ${distance} near you</p>
+      
+      
     </div>
   `;
 }

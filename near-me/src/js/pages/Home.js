@@ -1,7 +1,15 @@
-import { getNearByPlaces, getPlaceDetails } from "../api/places.js";
+import { formatDistance } from "../utils/formatDistance.js";
 import { createPlaceCard } from "../components/Card.js";
 
-// 📍 Obtener ubicación
+
+import {
+  getNearByPlaces,
+  getPlaceDetails,
+  filterPlaces
+} from "../api/places.js";
+
+
+// 📍 Ubicación usuario
 function getUserLocation() {
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
@@ -12,7 +20,6 @@ function getUserLocation() {
         });
       },
       () => {
-        // fallback San Salvador
         resolve({
           lat: 13.6929,
           lon: -89.2182
@@ -22,7 +29,7 @@ function getUserLocation() {
   });
 }
 
-// 📐 Calcular distancia
+// 📐 Distancia
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const toRad = (v) => (v * Math.PI) / 180;
@@ -41,19 +48,30 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
+// ===============================
+// 🔥 ESTADO GLOBAL
+// ===============================
+let allPlaces = [];
+let currentPage = 1;
+const ITEMS_PER_PAGE = 8;
+
 export async function loadHome() {
   const app = document.getElementById("app");
 
   app.innerHTML = `<h2>Loading nearby places...</h2>`;
 
   const userLocation = await getUserLocation();
-  console.log("📍 USER LOCATION:", userLocation);
 
-  // 🔥 Render de lugares
-  async function renderPlaces(kinds = "", radius = 3000) {
+  // ===============================
+  // 🎯 RENDER
+  // ===============================
+  async function renderPlaces(kinds = "", radius = 3000, reset = true) {
     const results = document.getElementById("results");
 
-    if (results) results.innerHTML = `<p>Loading...</p>`;
+    if (reset) {
+      results.innerHTML = `<p>Loading...</p>`;
+      currentPage = 1;
+    }
 
     const places = await getNearByPlaces(
       userLocation.lat,
@@ -62,14 +80,28 @@ export async function loadHome() {
       radius
     );
 
-    if (!places || places.length === 0) {
-      results.innerHTML = `<p>No places found</p>`;
-      return;
-    }
+    // 🧹 limpiar data basura
+    allPlaces = filterPlaces(places);
+
+    renderPage();
+  }
+
+
+
+  // ===============================
+  // 📄 RENDER PAGINADO
+  // ===============================
+  async function renderPage() {
+    const results = document.getElementById("results");
+
+    const start = 0;
+    const end = currentPage * ITEMS_PER_PAGE;
+
+    const pageData = allPlaces.slice(start, end);
 
     let cardsHTML = "";
 
-    for (const place of places.slice(0, 8)) {
+    for (const place of pageData) {
       const xid = place.properties.xid;
 
       const details = await getPlaceDetails(xid);
@@ -90,13 +122,38 @@ export async function loadHome() {
         placeLon
       );
 
-      cardsHTML += createPlaceCard(place, image, distance);
+      const formattedDistance = formatDistance(distance);
+
+      cardsHTML += createPlaceCard(place, image, formattedDistance);
     }
 
-    results.innerHTML = cardsHTML;
+    // botón ver más
+    const hasMore = end < allPlaces.length;
+
+    results.innerHTML = `
+      ${cardsHTML}
+
+      ${
+        hasMore
+          ? `<button id="loadMore" class="load-more">Ver más</button>`
+          : `<p>No hay más lugares</p>`
+      }
+    `;
+
+    // evento botón
+    const loadMoreBtn = document.getElementById("loadMore");
+
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener("click", () => {
+        currentPage++;
+        renderPage();
+      });
+    }
   }
 
+  // ===============================
   // 🎯 UI
+  // ===============================
   app.innerHTML = `
     <section>
       <h2>Find Places Near You</h2>
@@ -128,37 +185,39 @@ export async function loadHome() {
   // 🚀 carga inicial
   await renderPlaces();
 
-  // 🔍 buscador
+  // 🔍 buscador (sobre data real)
   const searchInput = document.getElementById("searchInput");
   const searchBtn = document.getElementById("searchBtn");
 
   searchBtn.addEventListener("click", () => {
     const value = searchInput.value.toLowerCase();
-    const cards = document.querySelectorAll(".card");
 
-    cards.forEach(card => {
-      const title = card.querySelector("h3").textContent.toLowerCase();
-      card.style.display = title.includes(value) ? "block" : "none";
-    });
+    const filtered = allPlaces.filter((p) =>
+      (p.properties.name || "").toLowerCase().includes(value)
+    );
+
+    allPlaces = filtered;
+    currentPage = 1;
+    renderPage();
   });
 
   // 🎛️ filtros
   const buttons = document.querySelectorAll(".filters button");
   const distanceSelect = document.getElementById("distanceSelect");
 
-  buttons.forEach(button => {
+  buttons.forEach((button) => {
     button.addEventListener("click", async () => {
       const kinds = button.dataset.type;
       const radius = distanceSelect.value;
 
-      buttons.forEach(btn => btn.classList.remove("active"));
+      buttons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
 
       await renderPlaces(kinds, radius);
     });
   });
 
-  // 📏 cambio de distancia
+  // 📏 distancia
   distanceSelect.addEventListener("change", async () => {
     const activeButton = document.querySelector(".filters .active");
     const kinds = activeButton ? activeButton.dataset.type : "";

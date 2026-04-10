@@ -1,4 +1,6 @@
-// 📍 Obtener lugares cercanos
+// ================================
+// 📍 OBTENER LUGARES CERCANOS
+// ================================
 export async function getNearByPlaces(lat, lon, kinds = "", radius = 3000) {
   const API_KEY = import.meta.env.VITE_OPENTRIPMAP_KEY;
 
@@ -7,20 +9,15 @@ export async function getNearByPlaces(lat, lon, kinds = "", radius = 3000) {
     return [];
   }
 
-  // 🔥 Construir URL correctamente
   let url = `https://api.opentripmap.com/0.1/en/places/radius?radius=${radius}&lon=${lon}&lat=${lat}&apikey=${API_KEY}`;
 
-  // ✅ Solo agregar kinds si existe
   if (kinds && kinds.trim() !== "") {
     url += `&kinds=${kinds}`;
   }
 
-  console.log("🚀 URL:", url);
-
   try {
     const response = await fetch(url);
 
-    // 🔥 Validar respuesta (pro tip)
     if (!response.ok) {
       console.error("❌ API Error:", response.status);
       return [];
@@ -35,31 +32,66 @@ export async function getNearByPlaces(lat, lon, kinds = "", radius = 3000) {
   }
 }
 
-// 📌 Obtener detalles de un lugar
+
+// ================================
+// 📌 DETALLE DE UN LUGAR
+// ================================
 export async function getPlaceDetails(xid) {
   const API_KEY = import.meta.env.VITE_OPENTRIPMAP_KEY;
 
-  if (!xid) {
-    console.error("❌ Missing xid:", xid);
-    return null;
-  }
+  if (!xid) return null;
 
   const url = `https://api.opentripmap.com/0.1/en/places/xid/${xid}?apikey=${API_KEY}`;
 
   try {
     const response = await fetch(url);
 
-    // 🔥 Validar respuesta
     if (!response.ok) {
-      console.error("❌ API Error (details):", response.status);
+      console.error("❌ API Error:", response.status);
       return null;
     }
 
-    const data = await response.json();
-
-    return data;
+    return await response.json();
   } catch (error) {
-    console.error("Error fetching place details:", error);
+    console.error("Error fetching details:", error);
     return null;
   }
 }
+
+// ================================
+// 🧹 FILTRO DE LUGARES
+// ================================
+export function filterPlaces(places) {
+  const blockedWords = [
+    "place",
+    "church",
+    "iglesia",
+    "temple",
+    "mosque",
+    "capilla"
+  ];
+
+  return places.filter((p) => {
+    const name = (p?.properties?.name || "").toLowerCase();
+
+    const isBadName = blockedWords.some(word =>
+      name.includes(word)
+    );
+
+    const isEmpty = !name || name.trim() === "";
+
+    return !isBadName && !isEmpty;
+  });
+}
+
+
+// ================================
+// 📄 PAGINACIÓN
+// ================================
+export function paginatePlaces(places, page = 1, limit = 10) {
+  const start = (page - 1) * limit;
+  const end = start + limit;
+
+  return places.slice(start, end);
+}
+
