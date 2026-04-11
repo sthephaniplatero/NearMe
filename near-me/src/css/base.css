@@ -1,16 +1,121 @@
+/* ===============================
+   🌴 VARIABLES GLOBALES
+=============================== */
 :root {
-  --primary: #1e90ff;
-  --secondary: #2e8b57;
-  --accent: #ffd54f;
-  --highlight: #ff7093;
+  /* 🎨 Colores principales */
+  --primary: #1e90ff;      /* ocean blue */
+  --secondary: #2e8b57;    /* palm green */
+  --accent: #ffd54f;       /* sun yellow */
+  --highlight: #ff7a00;    /* sunset orange */
 
+  /* 🎯 Variantes */
+  --primary-soft: #e6f4ff;
+  --secondary-dark: #1f6b45;
+
+  /* 📝 Texto */
   --text-dark: #222;
   --text-light: #555;
 
-  --bg:#f5f9fc;
+  /* 🎨 Fondo */
+  --bg: #f5f9fc;
   --white: #ffffff;
 
+  /* 🧱 UI */
+  --radius: 12px;
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  /* 🔤 Tipografía */
   --font-title: 'Bungee', cursive;
   --font-body: 'Montserrat', sans-serif;
+}
 
+/* ===============================
+   🌍 RESET BÁSICO
+=============================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ===============================
+   🧠 BASE GLOBAL
+=============================== */
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text-dark);
+  line-height: 1.5;
+}
+
+/* ===============================
+   🔤 TIPOGRAFÍA
+=============================== */
+h1, h2, h3 {
+  font-family: var(--font-title);
+}
+
+p {
+  font-family: var(--font-body);
+  color: var(--text-light);
+}
+
+/* ===============================
+   🔗 LINKS
+=============================== */
+a {
+  text-decoration: none;
+  color: var(--primary);
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ===============================
+   🔘 BOTONES BASE
+=============================== */
+button {
+  font-family: var(--font-body);
+  border: none;
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+/* ===============================
+   🧾 INPUTS Y SELECT
+=============================== */
+input, select {
+  font-family: var(--font-body);
+  border-radius: var(--radius);
+  border: 1px solid #ddd;
+  padding: 8px;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--primary);
+}
+
+/* ===============================
+   📦 UTILIDADES
+=============================== */
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.hidden {
+  display: none;
 }

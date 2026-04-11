@@ -55,16 +55,16 @@ let currentPage = 1;
 const ITEMS_PER_PAGE = 8;
 
 export async function loadHome() {
-  const app = document.getElementById("app");
+  const view = document.getElementById("view"); // 🔥 CAMBIO CLAVE
 
-  app.innerHTML = `<h2>Loading nearby places...</h2>`;
+  view.innerHTML = `<h2>Loading nearby places...</h2>`;
 
   const userLocation = await getUserLocation();
 
   // ===============================
   // 🎯 UI
   // ===============================
-  app.innerHTML = `
+  view.innerHTML = `
     <section>
       <h2>Find Places Near You</h2>
 
@@ -88,13 +88,13 @@ export async function loadHome() {
       <input type="text" id="searchInput" placeholder="Search...">
       <button id="searchBtn">Search</button>
 
-      <div id="map" style="height: 300px; margin-bottom: 20px;"></div>
+      <div id="map"></div>
       <div id="results"></div>
     </section>
   `;
 
   // ===============================
-  // 🗺️ MAPA (después del HTML)
+  // 🗺️ MAPA
   // ===============================
   let map = L.map("map").setView(
     [userLocation.lat, userLocation.lon],
@@ -105,7 +105,6 @@ export async function loadHome() {
     attribution: "&copy; OpenStreetMap contributors"
   }).addTo(map);
 
-  // 📍 usuario
   L.marker([userLocation.lat, userLocation.lon])
     .addTo(map)
     .bindPopup("You are here 📍")
@@ -135,7 +134,7 @@ export async function loadHome() {
   }
 
   // ===============================
-  // 📄 RENDER PAGINADO
+  // 📄 PAGINACIÓN
   // ===============================
   async function renderPage() {
     const results = document.getElementById("results");
@@ -145,7 +144,6 @@ export async function loadHome() {
 
     let cardsHTML = "";
 
-    // limpiar markers
     if (window.markersLayer) {
       window.markersLayer.clearLayers();
     }
@@ -174,15 +172,23 @@ export async function loadHome() {
       );
 
       const formattedDistance = formatDistance(distance);
-
       const times = calculateTravelTime(distance);
 
       // 📍 marker
       L.marker([placeLat, placeLon])
         .addTo(window.markersLayer)
-        .bindPopup(`<b>${place.properties.name}</b><br>${formattedDistance}<br>Estimated travel time: ${times.walk} walking, ${times.car} by car.`);
+        .bindPopup(`
+          <b>${place.properties.name}</b><br>
+          ${formattedDistance}<br>
+          🚶 ${times.walk} | 🚗 ${times.car}
+        `);
 
-      cardsHTML += createPlaceCard(place, image, formattedDistance, times);
+      cardsHTML += createPlaceCard(
+        place,
+        image,
+        formattedDistance,
+        times
+      );
     }
 
     const hasMore = end < allPlaces.length;
@@ -206,35 +212,33 @@ export async function loadHome() {
     }
   }
 
-  // 🚀 carga inicial
+  // 🚀 inicial
   await renderPlaces();
 
-  // 🔍 buscador
-  const searchInput = document.getElementById("searchInput");
-  const searchBtn = document.getElementById("searchBtn");
+  // 🔍 search
+  document.getElementById("searchBtn").addEventListener("click", () => {
+    const value = document
+      .getElementById("searchInput")
+      .value.toLowerCase();
 
-  searchBtn.addEventListener("click", () => {
-    const value = searchInput.value.toLowerCase();
-
-    const filtered = allPlaces.filter((p) =>
+    allPlaces = allPlaces.filter((p) =>
       (p.properties.name || "").toLowerCase().includes(value)
     );
 
-    allPlaces = filtered;
     currentPage = 1;
     renderPage();
   });
 
   // 🎛️ filtros
-  const buttons = document.querySelectorAll(".filters button");
-  const distanceSelect = document.getElementById("distanceSelect");
-
-  buttons.forEach((button) => {
+  document.querySelectorAll(".filters button").forEach((button) => {
     button.addEventListener("click", async () => {
       const kinds = button.dataset.type;
-      const radius = distanceSelect.value;
+      const radius = document.getElementById("distanceSelect").value;
 
-      buttons.forEach((btn) => btn.classList.remove("active"));
+      document
+        .querySelectorAll(".filters button")
+        .forEach((btn) => btn.classList.remove("active"));
+
       button.classList.add("active");
 
       await renderPlaces(kinds, radius);
@@ -242,10 +246,14 @@ export async function loadHome() {
   });
 
   // 📏 distancia
-  distanceSelect.addEventListener("change", async () => {
-    const activeButton = document.querySelector(".filters .active");
-    const kinds = activeButton ? activeButton.dataset.type : "";
+  document
+    .getElementById("distanceSelect")
+    .addEventListener("change", async () => {
+      const active = document.querySelector(".filters .active");
 
-    await renderPlaces(kinds, distanceSelect.value);
-  });
+      await renderPlaces(
+        active ? active.dataset.type : "",
+        document.getElementById("distanceSelect").value
+      );
+    });
 }
