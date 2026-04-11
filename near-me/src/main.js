@@ -18,7 +18,7 @@ function initApp() {
   app.innerHTML = `
     <header class="navbar">
       <div class="logo">
-        🌴 Near<span>Me</span>
+      <img src="/Logo.png" alt="NearMe logo">
       </div>
 
       <nav class="nav-links">
