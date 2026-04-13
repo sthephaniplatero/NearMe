@@ -1,7 +1,7 @@
 import { loadHome } from "./js/pages/Home";
 import { loadFavorites } from "./js/pages/Favorites.js";
 
-// 🎨 estilos
+// Styles
 import './css/base.css';
 import './css/layout.css';
 import './css/components.css';
@@ -35,15 +35,15 @@ function initApp() {
     </footer>
   `;
 
-  // 🔥 cargar HOME por defecto
+  
   loadHomeView();
 
-  // 🔗 activar navegación
+  
   setupNavigation();
 }
 
 // ===============================
-// 🏠 HOME VIEW
+//HOME VIEW
 // ===============================
 function loadHomeView() {
   const view = document.getElementById("view");
@@ -54,18 +54,18 @@ function loadHomeView() {
 }
 
 // ===============================
-// ❤️ FAVORITES VIEW
+// FAVORITES VIEW
 // ===============================
 function loadFavoritesView() {
   const view = document.getElementById("view");
 
   view.innerHTML = `<p>Loading favorites...</p>`;
 
-  loadFavorites(); // 🔥 renderiza favoritos desde localStorage
+  loadFavorites(); 
 }
 
 // ===============================
-// 🔗 NAVIGATION
+//  NAVIGATION
 // ===============================
 function setupNavigation() {
   const links = document.querySelectorAll(".nav-item");
@@ -74,7 +74,7 @@ function setupNavigation() {
     link.addEventListener("click", (e) => {
       e.preventDefault();
 
-      // activar botón
+      
       links.forEach(l => l.classList.remove("active"));
       link.classList.add("active");
 

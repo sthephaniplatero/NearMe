@@ -1,5 +1,5 @@
 function translateCategory(kinds) {
-  if (!kinds) return "Sin categoría";
+  if (!kinds) return "Without category";
 
   if (kinds.includes("church")) return "Iglesia ⛪";
   if (kinds.includes("park")) return "Parque 🌳";

@@ -1,6 +1,8 @@
 import { formatDistance } from "../utils/formatDistance.js";
 import { createPlaceCard } from "../components/Card.js";
 import { calculateTravelTime } from "../utils/calculateTravelTime.js";
+import { getWeather } from "../services/weatherService.js";
+import { getWeatherRecommendation } from "../utils/weatherTips.js";
 
 import {
   getNearByPlaces,
@@ -14,7 +16,7 @@ import {
   isFavorite
 } from "../utils/favorites.js";
 
-// 📍 Ubicación usuario
+// 📍 User location
 function getUserLocation() {
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
@@ -34,7 +36,7 @@ function getUserLocation() {
   });
 }
 
-// 📐 Distancia
+//  Distance
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const toRad = (v) => (v * Math.PI) / 180;
@@ -54,7 +56,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 // ===============================
-// 🔥 ESTADO GLOBAL
+// Global state
 // ===============================
 let allPlaces = [];
 let currentPage = 1;
@@ -67,12 +69,31 @@ export async function loadHome() {
 
   const userLocation = await getUserLocation();
 
+  //  WEATHER
+  const weather = await getWeather(userLocation.lat, userLocation.lon);
+  const recommendation = getWeatherRecommendation(weather);
+
   // ===============================
-  // 🎯 UI
+  //  UI
   // ===============================
   view.innerHTML = `
     <section>
       <h2>Find Places Near You</h2>
+
+      ${
+        weather ? `
+        <div class="weather-card">
+          <img src="${weather.icon}" alt="weather" />
+          <div>
+            <p><strong>${weather.temp}°C</strong> - ${weather.description}</p>
+            <p>Humidity: ${weather.humidity}%</p>
+            <p>Sunrise: ${weather.sunrise} | Sunset: ${weather.sunset}</p>
+            <small>${recommendation}</small>
+
+          </div>
+        </div>
+        ` : ""
+      }
 
       <div class="filters">
         <button data-type="" class="active">🌍 All</button>
@@ -100,7 +121,7 @@ export async function loadHome() {
   `;
 
   // ===============================
-  // 🗺️ MAPA
+  // MAP
   // ===============================
   let map = L.map("map").setView(
     [userLocation.lat, userLocation.lon],
@@ -117,7 +138,7 @@ export async function loadHome() {
     .openPopup();
 
   // ===============================
-  // 🎯 RENDER
+  // FETCH PLACES
   // ===============================
   async function renderPlaces(kinds = "", radius = 3000, reset = true) {
     const results = document.getElementById("results");
@@ -140,7 +161,7 @@ export async function loadHome() {
   }
 
   // ===============================
-  // 📄 PAGINACIÓN
+  //  RENDER PAGE
   // ===============================
   async function renderPage() {
     const results = document.getElementById("results");
@@ -211,9 +232,7 @@ export async function loadHome() {
       }
     `;
 
-    // ===============================
-    // ❤️ FAVORITES (CORRECTO)
-    // ===============================
+    // ❤️ FAVORITES
     document.querySelectorAll(".fav-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const xid = btn.dataset.id;
@@ -237,7 +256,7 @@ export async function loadHome() {
       });
     });
 
-    // botón ver más
+    // 🔄 LOAD MORE
     const loadMoreBtn = document.getElementById("loadMore");
 
     if (loadMoreBtn) {
@@ -248,10 +267,12 @@ export async function loadHome() {
     }
   }
 
-  // 🚀 inicial
+  // ===============================
+  // 🚀 INIT
+  // ===============================
   await renderPlaces();
 
-  // 🔍 search
+  // 🔍 SEARCH
   document.getElementById("searchBtn").addEventListener("click", () => {
     const value = document
       .getElementById("searchInput")
@@ -265,7 +286,7 @@ export async function loadHome() {
     renderPage();
   });
 
-  // 🎛️ filtros
+  // 🎛️ FILTERS
   document.querySelectorAll(".filters button").forEach((button) => {
     button.addEventListener("click", async () => {
       const kinds = button.dataset.type;
@@ -281,7 +302,7 @@ export async function loadHome() {
     });
   });
 
-  // 📏 distancia
+  // 📏 DISTANCE
   document
     .getElementById("distanceSelect")
     .addEventListener("change", async () => {

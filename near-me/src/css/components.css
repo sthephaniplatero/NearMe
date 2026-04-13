@@ -58,3 +58,28 @@
   background: #ccc;
 }
 
+/* Weather recommendation banner */
+.weather-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  background: linear-gradient(135deg, var(--accent), var(--highlight));
+  padding: 12px;
+  border-radius: var(--radius);
+
+  margin-bottom: 15px;
+  color: white;
+}
+
+.weather-card img {
+  width: 50px;
+}
+
+.weather-card small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
