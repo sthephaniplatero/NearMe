@@ -18,3 +18,13 @@ export function getWeatherRecommendation(weather) {
 
   return "🌴 Perfect weather to explore outdoors!";
 }
+
+
+export function getRecommendedKind(weather) {
+  if (!weather) return "";
+
+  if (weather.temp > 30) return "natural";
+  if (weather.description.includes("rain")) return "restaurants,cafes";
+
+  return "";
+}

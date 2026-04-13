@@ -2,7 +2,7 @@ import { formatDistance } from "../utils/formatDistance.js";
 import { createPlaceCard } from "../components/Card.js";
 import { calculateTravelTime } from "../utils/calculateTravelTime.js";
 import { getWeather } from "../services/weatherService.js";
-import { getWeatherRecommendation } from "../utils/weatherTips.js";
+import { getWeatherRecommendation, getRecommendedKind } from "../utils/weatherTips.js";
 
 import {
   getNearByPlaces,
@@ -16,7 +16,19 @@ import {
   isFavorite
 } from "../utils/favorites.js";
 
+// ===============================
+// 🧠 HELPER (NUEVO)
+// ===============================
+function getKindLabel(kind) {
+  if (kind === "natural") return "🌿 Nature places";
+  if (kind === "restaurants,cafes") return "🍔 Food & cafes";
+  if (kind === "museums") return "🏛️ Culture spots";
+  return "🌍 All places";
+}
+
+// ===============================
 // 📍 User location
+// ===============================
 function getUserLocation() {
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
@@ -36,7 +48,9 @@ function getUserLocation() {
   });
 }
 
-//  Distance
+// ===============================
+// 📐 Distance
+// ===============================
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const toRad = (v) => (v * Math.PI) / 180;
@@ -56,12 +70,15 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 // ===============================
-// Global state
+// 🔥 GLOBAL STATE
 // ===============================
 let allPlaces = [];
 let currentPage = 1;
 const ITEMS_PER_PAGE = 8;
 
+// ===============================
+// 🚀 LOAD HOME
+// ===============================
 export async function loadHome() {
   const view = document.getElementById("view");
 
@@ -69,12 +86,13 @@ export async function loadHome() {
 
   const userLocation = await getUserLocation();
 
-  //  WEATHER
+  // 🌤️ WEATHER
   const weather = await getWeather(userLocation.lat, userLocation.lon);
   const recommendation = getWeatherRecommendation(weather);
+  const recommendedKind = getRecommendedKind(weather);
 
   // ===============================
-  //  UI
+  // 🎯 UI
   // ===============================
   view.innerHTML = `
     <section>
@@ -89,10 +107,19 @@ export async function loadHome() {
             <p>Humidity: ${weather.humidity}%</p>
             <p>Sunrise: ${weather.sunrise} | Sunset: ${weather.sunset}</p>
             <small>${recommendation}</small>
-
           </div>
         </div>
         ` : ""
+      }
+
+      ${
+        recommendedKind
+          ? `
+          <div class="weather-filter-info">
+            🌦️ Showing ${getKindLabel(recommendedKind)} based on current weather
+          </div>
+          `
+          : ""
       }
 
       <div class="filters">
@@ -106,9 +133,9 @@ export async function loadHome() {
         <label>Distance:</label>
         <select id="distanceSelect">
           <option value="1000">1 km</option>
-          <option value="3000" selected>3 km</option>
+          <option value="3000">3 km</option>
           <option value="5000">5 km</option>
-          <option value="10000">10 km</option>
+          <option value="10000" selected>10 km</option>
         </select>
       </div>
 
@@ -121,7 +148,22 @@ export async function loadHome() {
   `;
 
   // ===============================
-  // MAP
+  // 🎯 Activar botón según clima
+  // ===============================
+  if (recommendedKind) {
+    const buttons = document.querySelectorAll(".filters button");
+
+    buttons.forEach(btn => {
+      btn.classList.remove("active");
+
+      if (btn.dataset.type === recommendedKind) {
+        btn.classList.add("active");
+      }
+    });
+  }
+
+  // ===============================
+  // 🗺️ MAP
   // ===============================
   let map = L.map("map").setView(
     [userLocation.lat, userLocation.lon],
@@ -138,7 +180,7 @@ export async function loadHome() {
     .openPopup();
 
   // ===============================
-  // FETCH PLACES
+  // 🔎 FETCH PLACES
   // ===============================
   async function renderPlaces(kinds = "", radius = 3000, reset = true) {
     const results = document.getElementById("results");
@@ -161,7 +203,7 @@ export async function loadHome() {
   }
 
   // ===============================
-  //  RENDER PAGE
+  // 📄 RENDER PAGE
   // ===============================
   async function renderPage() {
     const results = document.getElementById("results");
@@ -200,10 +242,8 @@ export async function loadHome() {
 
       const formattedDistance = formatDistance(distance);
       const times = calculateTravelTime(distance);
-
       const isFav = isFavorite(xid);
 
-      // 📍 marker
       L.marker([placeLat, placeLon])
         .addTo(window.markersLayer)
         .bindPopup(`
@@ -256,7 +296,6 @@ export async function loadHome() {
       });
     });
 
-    // 🔄 LOAD MORE
     const loadMoreBtn = document.getElementById("loadMore");
 
     if (loadMoreBtn) {
@@ -268,11 +307,14 @@ export async function loadHome() {
   }
 
   // ===============================
-  // 🚀 INIT
+  // 🚀 INIT (MEJORADO)
   // ===============================
-  await renderPlaces();
+  const radius = document.getElementById("distanceSelect").value;
+  await renderPlaces(recommendedKind, radius);
 
+  // ===============================
   // 🔍 SEARCH
+  // ===============================
   document.getElementById("searchBtn").addEventListener("click", () => {
     const value = document
       .getElementById("searchInput")
@@ -286,7 +328,9 @@ export async function loadHome() {
     renderPage();
   });
 
+  // ===============================
   // 🎛️ FILTERS
+  // ===============================
   document.querySelectorAll(".filters button").forEach((button) => {
     button.addEventListener("click", async () => {
       const kinds = button.dataset.type;
@@ -302,7 +346,9 @@ export async function loadHome() {
     });
   });
 
+  // ===============================
   // 📏 DISTANCE
+  // ===============================
   document
     .getElementById("distanceSelect")
     .addEventListener("change", async () => {
