@@ -25,26 +25,36 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return (R * c).toFixed(2);
 }
 
-export function createPlaceCard(place, image, distance, times) {
-  const name = place.properties.name || "place";
+export function createPlaceCard(place, image, distance, times, isFav) {
+  const name = place.properties.name || "Place";
 
   const fallback = `https://picsum.photos/seed/${encodeURIComponent(name)}/300/200`;
 
   return `
     <div class="card">
+      
       <img 
         src="${image || fallback}" 
         alt="${name}"
+        class="card-img"
         onerror="this.src='${fallback}'"
       />
-      <h3>${name}</h3>
-      <p class="distance">📍 ${distance} near you</p>
-      <div class="times">
-        <span>🚶 ${times.walk}</span>
-        <span>🚗 ${times.car}</span>
+
+      <div class="card-content">
+        <h3>${name}</h3>
+
+        <p class="distance">📍 ${distance} near you</p>
+
+        <div class="times">
+          <span>🚶 ${times.walk}</span>
+          <span>🚗 ${times.car}</span>
+        </div>
+
+        <button class="fav-btn" data-id="${place.properties.xid}">
+          ${isFav ? "❤️" : "🤍"}
+        </button>
       </div>
-      
-      
+
     </div>
   `;
 }

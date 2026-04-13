@@ -8,6 +8,12 @@ import {
   filterPlaces
 } from "../api/places.js";
 
+import {
+  addFavorite,
+  removeFavorite,
+  isFavorite
+} from "../utils/favorites.js";
+
 // 📍 Ubicación usuario
 function getUserLocation() {
   return new Promise((resolve) => {
@@ -55,7 +61,7 @@ let currentPage = 1;
 const ITEMS_PER_PAGE = 8;
 
 export async function loadHome() {
-  const view = document.getElementById("view"); // 🔥 CAMBIO CLAVE
+  const view = document.getElementById("view");
 
   view.innerHTML = `<h2>Loading nearby places...</h2>`;
 
@@ -174,6 +180,8 @@ export async function loadHome() {
       const formattedDistance = formatDistance(distance);
       const times = calculateTravelTime(distance);
 
+      const isFav = isFavorite(xid);
+
       // 📍 marker
       L.marker([placeLat, placeLon])
         .addTo(window.markersLayer)
@@ -187,7 +195,8 @@ export async function loadHome() {
         place,
         image,
         formattedDistance,
-        times
+        times,
+        isFav
       );
     }
 
@@ -202,6 +211,33 @@ export async function loadHome() {
       }
     `;
 
+    // ===============================
+    // ❤️ FAVORITES (CORRECTO)
+    // ===============================
+    document.querySelectorAll(".fav-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const xid = btn.dataset.id;
+
+        const place = allPlaces.find(p => p.properties.xid === xid);
+
+        const data = {
+          xid,
+          name: place.properties.name,
+          image: btn.closest(".card").querySelector("img").src,
+          distance: btn.closest(".card").querySelector(".distance").textContent
+        };
+
+        if (isFavorite(xid)) {
+          removeFavorite(xid);
+          btn.textContent = "🤍";
+        } else {
+          addFavorite(data);
+          btn.textContent = "❤️";
+        }
+      });
+    });
+
+    // botón ver más
     const loadMoreBtn = document.getElementById("loadMore");
 
     if (loadMoreBtn) {

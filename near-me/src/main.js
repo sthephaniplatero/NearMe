@@ -1,4 +1,5 @@
 import { loadHome } from "./js/pages/Home";
+import { loadFavorites } from "./js/pages/Favorites.js";
 
 // 🎨 estilos
 import './css/base.css';
@@ -18,7 +19,7 @@ function initApp() {
   app.innerHTML = `
     <header class="navbar">
       <div class="logo">
-      <img src="/Logo.png" alt="NearMe logo">
+        <img src="/Logo.png" alt="NearMe logo">
       </div>
 
       <nav class="nav-links">
@@ -34,7 +35,10 @@ function initApp() {
     </footer>
   `;
 
-  loadHomeView(); // 🔥 SIEMPRE cargar home
+  // 🔥 cargar HOME por defecto
+  loadHomeView();
+
+  // 🔗 activar navegación
   setupNavigation();
 }
 
@@ -44,23 +48,20 @@ function initApp() {
 function loadHomeView() {
   const view = document.getElementById("view");
 
-  view.innerHTML = `<p>Loading...</p>`; // 👈 feedback visual
+  view.innerHTML = `<p>Loading...</p>`;
 
-  loadHome(); // 🔥 ESTA ES LA LÍNEA CLAVE
+  loadHome(); // 🔥 renderiza Home en #view
 }
 
 // ===============================
-// ❤️ FAVORITES
+// ❤️ FAVORITES VIEW
 // ===============================
 function loadFavoritesView() {
   const view = document.getElementById("view");
 
-  view.innerHTML = `
-    <section>
-      <h2>❤️ Favorites</h2>
-      <p>Here you will see your saved places soon...</p>
-    </section>
-  `;
+  view.innerHTML = `<p>Loading favorites...</p>`;
+
+  loadFavorites(); // 🔥 renderiza favoritos desde localStorage
 }
 
 // ===============================
@@ -73,6 +74,7 @@ function setupNavigation() {
     link.addEventListener("click", (e) => {
       e.preventDefault();
 
+      // activar botón
       links.forEach(l => l.classList.remove("active"));
       link.classList.add("active");
 
