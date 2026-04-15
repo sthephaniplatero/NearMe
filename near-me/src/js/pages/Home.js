@@ -17,7 +17,26 @@ import {
 } from "../utils/favorites.js";
 
 // ===============================
-// 🧠 HELPER (NUEVO)
+// 🌍 VALIDACIÓN EL SALVADOR (NUEVO)
+// ===============================
+function isInElSalvador(lat, lon) {
+  const bounds = {
+    minLat: 13.0,
+    maxLat: 14.5,
+    minLon: -90.5,
+    maxLon: -87.5
+  };
+
+  return (
+    lat >= bounds.minLat &&
+    lat <= bounds.maxLat &&
+    lon >= bounds.minLon &&
+    lon <= bounds.maxLon
+  );
+}
+
+// ===============================
+// 🧠 HELPER
 // ===============================
 function getKindLabel(kind) {
   if (kind === "natural") return "🌿 Nature places";
@@ -70,8 +89,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 // ===============================
-// 🔥 GLOBAL STATE
-// ===============================
 let allPlaces = [];
 let currentPage = 1;
 const ITEMS_PER_PAGE = 8;
@@ -86,13 +103,24 @@ export async function loadHome() {
 
   const userLocation = await getUserLocation();
 
+  // 🚫 BLOQUEO PAÍS
+  if (!isInElSalvador(userLocation.lat, userLocation.lon)) {
+    view.innerHTML = `
+      <section class="blocked">
+        <h2>🌎 App not available</h2>
+        <p>This application is only available in El Salvador 🇸🇻</p>
+      </section>
+    `;
+    return;
+  }
+
   // 🌤️ WEATHER
   const weather = await getWeather(userLocation.lat, userLocation.lon);
   const recommendation = getWeatherRecommendation(weather);
   const recommendedKind = getRecommendedKind(weather);
 
   // ===============================
-  // 🎯 UI
+  // UI
   // ===============================
   view.innerHTML = `
     <section>
@@ -147,15 +175,10 @@ export async function loadHome() {
     </section>
   `;
 
-  // ===============================
-  // 🎯 Activar botón según clima
-  // ===============================
+  // 🎯 Activar filtro automático
   if (recommendedKind) {
-    const buttons = document.querySelectorAll(".filters button");
-
-    buttons.forEach(btn => {
+    document.querySelectorAll(".filters button").forEach(btn => {
       btn.classList.remove("active");
-
       if (btn.dataset.type === recommendedKind) {
         btn.classList.add("active");
       }
@@ -180,8 +203,6 @@ export async function loadHome() {
     .openPopup();
 
   // ===============================
-  // 🔎 FETCH PLACES
-  // ===============================
   async function renderPlaces(kinds = "", radius = 3000, reset = true) {
     const results = document.getElementById("results");
 
@@ -198,12 +219,9 @@ export async function loadHome() {
     );
 
     allPlaces = filterPlaces(places);
-
     renderPage();
   }
 
-  // ===============================
-  // 📄 RENDER PAGE
   // ===============================
   async function renderPage() {
     const results = document.getElementById("results");
@@ -221,14 +239,9 @@ export async function loadHome() {
 
     for (const place of pageData) {
       const xid = place.properties.xid;
-
       const details = await getPlaceDetails(xid);
 
-      let image = details?.preview?.source;
-
-      if (!image || !image.startsWith("http")) {
-        image = `https://picsum.photos/seed/${xid}/300/200`;
-      }
+      let image = details?.preview?.source || `https://picsum.photos/seed/${xid}/300/200`;
 
       const placeLat = place.geometry.coordinates[1];
       const placeLon = place.geometry.coordinates[0];
@@ -246,11 +259,7 @@ export async function loadHome() {
 
       L.marker([placeLat, placeLon])
         .addTo(window.markersLayer)
-        .bindPopup(`
-          <b>${place.properties.name}</b><br>
-          ${formattedDistance}<br>
-          🚶 ${times.walk} | 🚗 ${times.car}
-        `);
+        .bindPopup(`<b>${place.properties.name}</b><br>${formattedDistance}`);
 
       cardsHTML += createPlaceCard(
         place,
@@ -261,16 +270,7 @@ export async function loadHome() {
       );
     }
 
-    const hasMore = end < allPlaces.length;
-
-    results.innerHTML = `
-      ${cardsHTML}
-      ${
-        hasMore
-          ? `<button id="loadMore" class="load-more">Ver más</button>`
-          : `<p>No hay más lugares</p>`
-      }
-    `;
+    results.innerHTML = cardsHTML;
 
     // ❤️ FAVORITES
     document.querySelectorAll(".fav-btn").forEach(btn => {
@@ -295,30 +295,15 @@ export async function loadHome() {
         }
       });
     });
-
-    const loadMoreBtn = document.getElementById("loadMore");
-
-    if (loadMoreBtn) {
-      loadMoreBtn.addEventListener("click", () => {
-        currentPage++;
-        renderPage();
-      });
-    }
   }
 
-  // ===============================
-  // 🚀 INIT (MEJORADO)
-  // ===============================
+  // 🚀 INIT
   const radius = document.getElementById("distanceSelect").value;
   await renderPlaces(recommendedKind, radius);
 
-  // ===============================
   // 🔍 SEARCH
-  // ===============================
   document.getElementById("searchBtn").addEventListener("click", () => {
-    const value = document
-      .getElementById("searchInput")
-      .value.toLowerCase();
+    const value = document.getElementById("searchInput").value.toLowerCase();
 
     allPlaces = allPlaces.filter((p) =>
       (p.properties.name || "").toLowerCase().includes(value)
@@ -328,35 +313,26 @@ export async function loadHome() {
     renderPage();
   });
 
-  // ===============================
   // 🎛️ FILTERS
-  // ===============================
   document.querySelectorAll(".filters button").forEach((button) => {
     button.addEventListener("click", async () => {
       const kinds = button.dataset.type;
       const radius = document.getElementById("distanceSelect").value;
 
-      document
-        .querySelectorAll(".filters button")
-        .forEach((btn) => btn.classList.remove("active"));
-
+      document.querySelectorAll(".filters button").forEach(btn => btn.classList.remove("active"));
       button.classList.add("active");
 
       await renderPlaces(kinds, radius);
     });
   });
 
-  // ===============================
   // 📏 DISTANCE
-  // ===============================
-  document
-    .getElementById("distanceSelect")
-    .addEventListener("change", async () => {
-      const active = document.querySelector(".filters .active");
+  document.getElementById("distanceSelect").addEventListener("change", async () => {
+    const active = document.querySelector(".filters .active");
 
-      await renderPlaces(
-        active ? active.dataset.type : "",
-        document.getElementById("distanceSelect").value
-      );
-    });
+    await renderPlaces(
+      active ? active.dataset.type : "",
+      document.getElementById("distanceSelect").value
+    );
+  });
 }

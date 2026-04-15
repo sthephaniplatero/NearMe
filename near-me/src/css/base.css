@@ -1,36 +1,53 @@
 /* ===============================
-   🌴 VARIABLES GLOBALES
+   🎨 MODERN COLOR SYSTEM (FIXED)
 =============================== */
 :root {
-  /* 🎨 Colores principales */
-  --primary: #1e90ff;      /* ocean blue */
-  --secondary: #2e8b57;    /* palm green */
-  --accent: #ffd54f;       /* sun yellow */
-  --highlight: #ff7a00;    /* sunset orange */
 
-  /* 🎯 Variantes */
-  --primary-soft: #e6f4ff;
-  --secondary-dark: #1f6b45;
+  /* Primary palette */
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-soft: #eaf2ff;
 
-  /* 📝 Texto */
-  --text-dark: #222;
-  --text-light: #555;
+  /* Secondary */
+  --secondary: #22c55e;
+  --secondary-dark: #16a34a;
 
-  /* 🎨 Fondo */
-  --bg: #f5f9fc;
+  /* Accent */
+  --accent: #facc15;
+
+  /* Highlight */
+  --highlight: #f97316;
+
+  /* Neutrals (FIXED CONTRAST) */
+  --bg: #f6f8fc;
   --white: #ffffff;
 
-  /* 🧱 UI */
-  --radius: 12px;
-  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --text-dark: #0f172a;   /* 🔥 más oscuro (FIX) */
+  --text-light: #4b5563;  /* 🔥 mejor contraste (FIX) */
 
-  /* 🔤 Tipografía */
-  --font-title: 'Bungee', cursive;
-  --font-body: 'Montserrat', sans-serif;
+  /* Surfaces (FIX GLASS BUG) */
+  --surface: rgba(255, 255, 255, 0.95);
+  --surface-solid: #ffffff;
+
+  /* ===============================
+     📐 UI
+  =============================== */
+  --radius: 14px;
+  --radius-lg: 20px;
+
+  --shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.06);
+  --shadow-medium: 0 12px 30px rgba(0, 0, 0, 0.10);
+  --shadow-strong: 0 20px 45px rgba(0, 0, 0, 0.12);
+
+  /* ===============================
+     🔤 FONTS
+  =============================== */
+  --font-title: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
 }
 
 /* ===============================
-   🌍 RESET BÁSICO
+   RESET MODERNO
 =============================== */
 * {
   margin: 0;
@@ -38,78 +55,120 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 /* ===============================
-   🧠 BASE GLOBAL
+   BODY (FIX TEXT VISIBILITY)
 =============================== */
 body {
   font-family: var(--font-body);
-  background: var(--bg);
+  background: linear-gradient(180deg, var(--bg), #eef2ff);
   color: var(--text-dark);
-  line-height: 1.5;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ===============================
-   🔤 TIPOGRAFÍA
+   GLOBAL TEXT FIX
+=============================== */
+body {
+  color: var(--text-dark);
+}
+
+/* ===============================
+   TYPOGRAPHY
 =============================== */
 h1, h2, h3 {
   font-family: var(--font-title);
+  color: var(--text-dark);
+  letter-spacing: -0.5px;
 }
 
 p {
-  font-family: var(--font-body);
   color: var(--text-light);
+  font-size: 0.95rem;
 }
 
 /* ===============================
-   🔗 LINKS
+   LINKS
 =============================== */
 a {
   text-decoration: none;
   color: var(--primary);
+  transition: 0.2s ease;
 }
 
 a:hover {
-  text-decoration: underline;
+  color: var(--primary-dark);
 }
 
 /* ===============================
-   🔘 BOTONES BASE
+   BUTTONS MODERNOS
 =============================== */
 button {
   font-family: var(--font-body);
+
   border: none;
-  border-radius: var(--radius);
-  padding: 8px 14px;
+  border-radius: 999px;
+
+  padding: 10px 16px;
+
   cursor: pointer;
-  transition: 0.2s;
+
+  transition: all 0.25s ease;
+
+  background: var(--primary);
+  color: #3b82f6;
+
+  box-shadow: var(--shadow-soft);
 }
 
 button:hover {
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+button:active {
+  transform: scale(0.98);
 }
 
 /* ===============================
-   🧾 INPUTS Y SELECT
+   INPUTS (GLASS FIXED)
 =============================== */
-input, select {
+input,
+select {
   font-family: var(--font-body);
+
   border-radius: var(--radius);
-  border: 1px solid #ddd;
-  padding: 8px;
+  border: 1px solid rgba(0,0,0,0.08);
+
+  padding: 10px 12px;
+
   outline: none;
+
+  background: var(--surface); /* FIXED */
+  backdrop-filter: blur(10px);
+
+  transition: all 0.2s ease;
+
+  color: var(--text-dark);
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 /* ===============================
-   📦 UTILIDADES
+   CONTAINERS
 =============================== */
 .container {
   max-width: 1200px;
   margin: auto;
-  padding: 20px;
+  padding: 24px;
 }
 
 .text-center {
@@ -118,4 +177,37 @@ input:focus, select:focus {
 
 .hidden {
   display: none;
+}
+
+/* ===============================
+   GLASS UTILITY (CLEAN FIX)
+=============================== */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+
+  color: var(--text-dark);
+}
+
+/* ===============================
+   FIX PARA LISTAS / LUGARES
+=============================== */
+.card,
+.place-item,
+.result-item {
+  color: var(--text-dark);
+}
+
+.card h3,
+.place-item h3,
+.result-item h3 {
+  color: var(--text-dark);
+}
+
+.card p,
+.place-item p {
+  color: var(--text-light);
 }

@@ -22,6 +22,9 @@ function initApp() {
         <img src="/Logo.png" alt="NearMe logo">
       </div>
 
+      <div class="navbar-ad">
+      </div>
+
       <nav class="nav-links">
         <a href="#" class="nav-item active" data-page="home">Home</a>
         <a href="#" class="nav-item" data-page="favorites">Favorites</a>
